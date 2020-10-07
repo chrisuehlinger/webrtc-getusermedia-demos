@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Put a Video Frame on a Canvas</title>
+  <style>
+    section {
+      display: inline-block;
+      padding: 10px;
+      border: 1px solid black;
+      border-radius: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h2>HTMLVideoElement</h2>
+    <video id="myvideo"></video>
+  </section>
+  <section>
+    <h2>HTMLCanvasElement</h2>
+    <button id="drawCanvasButton">ctx.drawImage</button>
+    <div>
+      <canvas id="mycanvas" width="640" height="480"></canvas>
+    </div>
+  </section>
+  <script>
+    const videoEl = document.getElementById('myvideo'),
+      canvasEl = document.getElementById('mycanvas'),
+      ctx = canvasEl.getContext('2d');
+
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+      .then((stream) => {
+        videoEl.srcObject = stream;
+        videoEl.play();
+      })
+      .catch((error) => {
+        console.log('UHOH!', error);
+      });
+
+    // When someone clicks on the button, copy the current video frame to the canvas
+    document.getElementById('drawCanvasButton').onclick = function() {
+      ctx.drawImage(videoEl, 0, 0);
+    }
+  </script>
+</body>
+</html>

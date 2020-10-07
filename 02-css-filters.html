@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSS Filters!</title>
+  <style>
+    #myvideo {
+      transform: rotate(10deg);
+      filter: blur(10px);
+      /* filter: invert(1); */
+      /* filter: hue-rotate(180deg); */
+      /* filter: contrast(10); */
+    }
+  </style>
+</head>
+<body>
+  <video id="myvideo"></video>
+  <script>
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+      .then((stream) => {
+        let videoEl = document.getElementById('myvideo');
+        videoEl.srcObject = stream;
+        videoEl.play();
+      })
+      .catch((error) => {
+        console.log('UHOH!', error);
+      });
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Automate all of that</title>
+  <style>
+    section {
+      display: inline-block;
+      padding: 10px;
+      border: 1px solid black;
+      border-radius: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h2>HTMLVideoElement</h2>
+    <video id="myvideo"></video>
+  </section>
+  <section>
+    <h2>HTMLCanvasElement</h2>
+    <div>
+      <canvas id="mycanvas" width="640" height="480"></canvas>
+    </div>
+  </section>
+  <section>
+    <h2>HTMLImageElement</h2>
+    <div>
+      <img id="myimage" />
+    </div>
+  </section>
+  <script>
+    const videoEl = document.getElementById('myvideo'),
+      canvasEl = document.getElementById('mycanvas'),
+      ctx = canvasEl.getContext('2d'),
+      imageEl = document.getElementById('myimage');
+
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+      .then((stream) => {
+        videoEl.srcObject = stream;
+        videoEl.play();
+        requestAnimationFrame(render);
+      })
+      .catch((error) => {
+        console.log('UHOH!', error);
+      });
+
+    function render() {
+      ctx.drawImage(videoEl, 0, 0);
+      imageEl.src = canvasEl.toDataURL();
+      requestAnimationFrame(render);
+    }
+  </script>
+</body>
+</html>

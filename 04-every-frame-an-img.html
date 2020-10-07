@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Turn a Video frame into an img</title>
+  <style>
+    section {
+      display: inline-block;
+      padding: 10px;
+      border: 1px solid black;
+      border-radius: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h2>HTMLVideoElement</h2>
+    <video id="myvideo"></video>
+  </section>
+  <section>
+    <h2>HTMLCanvasElement</h2>
+    <button id="drawCanvasButton">Video Frame -> Canvas</button>
+    <div>
+      <canvas id="mycanvas" width="640" height="480"></canvas>
+    </div>
+  </section>
+  <section>
+    <h2>HTMLImageElement</h2>
+    <button id="drawImageButton">Canvas -> Image</button>
+    <div>
+      <img id="myimage" />
+    </div>
+  </section>
+  <script>
+    const videoEl = document.getElementById('myvideo'),
+      canvasEl = document.getElementById('mycanvas'),
+      ctx = canvasEl.getContext('2d'),
+      imageEl = document.getElementById('myimage');
+
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+      .then((stream) => {
+        videoEl.srcObject = stream;
+        videoEl.play();
+      })
+      .catch((error) => {
+        console.log('UHOH!', error);
+      });
+
+    // When someone clicks on this button, copy the current video frame to the canvas
+    document.getElementById('drawCanvasButton').onclick = function() {
+      ctx.drawImage(videoEl, 0, 0);
+    }
+
+    // When someone clicks on this other button, copy the canvas to the image
+    document.getElementById('drawImageButton').onclick = function() {
+      imageEl.src = canvasEl.toDataURL();
+    }
+  </script>
+</body>
+</html>

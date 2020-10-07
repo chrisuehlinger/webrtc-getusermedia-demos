@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>The Video Centipede</title>
+  <style>
+    section {
+      display: inline-block;
+      padding: 10px;
+      border: 1px solid black;
+      border-radius: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <h2>HTMLVideoElement</h2>
+    <pre><code>videoEl1.srcObject = await navigator.mediaDevices.getUserMedia({audio: true, video: true});</code></pre>
+    <video id="myvideo1"></video>
+  </section>
+  <section>
+    <h2>HTMLCanvasElement</h2>
+    <pre><code>canvasEl1.getContext('2d').drawImage(videoEl1,0,0);</code></pre>
+    <div>
+      <canvas id="mycanvas1" width="640" height="480"></canvas>
+    </div>
+  </section>
+  <section>
+    <h2>HTMLImageElement</h2>
+    <pre><code>imageEl.src = canvasEl1.toDataURL();</code></pre>
+    <div>
+      <img id="myimage" />
+    </div>
+  </section>
+  <section>
+    <h2>HTMLCanvasElement</h2>
+    <pre><code>canvasEl2.getContext('2d').drawImage(imageEl,0,0);</code></pre>
+    <div>
+      <canvas id="mycanvas2" width="640" height="480"></canvas>
+    </div>
+  </section>
+  <section>
+    <h2>HTMLVideoElement</h2>
+    <pre><code>videoEl2.srcObject = canvasEl2.captureStream();</code></pre>
+    <video id="myvideo2"></video>
+  </section>
+  <script>
+    const videoEl1 = document.getElementById('myvideo1'),
+      canvasEl1 = document.getElementById('mycanvas1'),
+      ctx1 = canvasEl1.getContext('2d'),
+      imageEl = document.getElementById('myimage'),
+      canvasEl2 = document.getElementById('mycanvas2'),
+      ctx2 = canvasEl2.getContext('2d'),
+      videoEl2 = document.getElementById('myvideo2');
+
+    !async function go() {
+      try {
+        videoEl1.srcObject = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+        videoEl1.play();
+        
+        videoEl2.srcObject = canvasEl2.captureStream();
+        videoEl2.play();
+
+        render();
+      } catch(error) {
+        console.log('UHOH!', error);
+
+      }
+    }()
+
+    function render() {
+      ctx1.drawImage(videoEl1, 0, 0);
+      imageEl.src = canvasEl1.toDataURL();
+      ctx2.drawImage(imageEl,0,0);
+      requestAnimationFrame(render);
+    }
+  </script>
+</body>
+</html>

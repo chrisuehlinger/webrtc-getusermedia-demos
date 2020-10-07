@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Audio Delay</title>
+</head>
+<body>
+  <audio id="myaudio"></audio>
+  
+  <!-- Many browsers won't let you autoplay audio or start audio context unless it happens during a click event -->
+  <button onclick="go()">Start</button>
+  <script>
+    const audioEl = document.getElementById('myaudio');
+
+    async function go() {
+      try {
+        console.log('GO!');
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+        
+        const audioContext = new AudioContext(),
+          sourceNode = audioContext.createMediaStreamSource(stream),
+          delayNode = audioContext.createDelay(),
+          gainNode = audioContext.createGain(),
+          outputNode = audioContext.createMediaStreamDestination();
+
+        delayNode.delayTime.value = 0.15; // How many seconds to delay
+        gainNode.gain.value = 0.75; // Each echo should be 75% the volume of the one before it
+
+        sourceNode.connect(outputNode); //This is called the "dry" part of the output, we're connecting the microphone stream directly to the output with no effects
+
+        sourceNode.connect(delayNode);
+        delayNode.connect(gainNode);
+        gainNode.connect(delayNode); // This is where we feed the delay back in, so it repeats as an echo
+        gainNode.connect(outputNode); // This is the "wet" part of the output, the part with effects. It will mix with the "dry" part at equal volume
+
+        audioEl.srcObject = outputNode.stream;
+        audioEl.play();
+      } catch(error) {
+        console.log('UHOH!', error);
+
+      }
+    }
+  </script>
+</body>
+</html>

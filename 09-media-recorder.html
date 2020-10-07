@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello Recorder!</title>
+</head>
+<body>
+  <button onclick="start()">Record</button>
+  <button onclick="stop()">Stop</button>
+  <video id="myvideo" controls></video>
+  <script>
+    const videoEl = document.getElementById('myvideo');
+    let recorder = null;
+    let chunks = [];
+    async function start() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+        recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+
+        recorder.ondataavailable = (event) => {
+          console.log('GOT DATA!', event.data);
+          chunks.push(event.data);
+        };
+
+        recorder.onstop = () => {
+          let blob = new Blob(chunks, { type: 'video/webm' });
+          let blobUrl = URL.createObjectURL(blob);
+          videoEl.src = blobUrl;
+
+          var downloadLink = document.createElement("a");
+          document.body.appendChild(downloadLink);
+          downloadLink.innerText = 'Download File';
+          downloadLink.href = blobUrl;
+          downloadLink.download = "test.webm";
+        };
+
+        recorder.start();
+      } catch(error) {
+        console.log('UHOH!', error);
+      }
+    }
+    async function stop() {
+      try {
+        if(recorder) {
+          recorder.stop();
+
+        }
+      } catch(error) {
+        console.log('UHOH!', error);
+      }
+    }
+  </script>
+</body>
+</html>

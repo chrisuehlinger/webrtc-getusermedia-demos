@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>three.js VideoTexture</title>
+  <style>
+    body { margin: 0; }
+    canvas { display: block; }
+    
+    /* Note: we need a video element in order for this to work, but we don't want it to be visible */
+    video { display: none; }
+  </style>
+</head>
+<body>
+  <video id="myvideo"></video>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js" integrity="sha512-yNJzAsg5JyP91u+sLHlUDULMBd3hmEiVkYeeN1cQBKaLZ7EyT6oH2u5THNIRM2Fu6VKcZJv+F/QAp1h/qzy9Ow==" crossorigin="anonymous"></script>
+  <script>
+    // Mostly copied from the three.js Beginner Tutorial: https://threejs.org/docs/index.html#manual/en/introduction/Creating-a-scene
+    // Also the VideoTexture docs: https://threejs.org/docs/index.html#api/en/textures/VideoTexture
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    var geometry = new THREE.PlaneGeometry(4,3);
+
+    var videoEl = document.getElementById('myvideo');
+    var texture = new THREE.VideoTexture( videoEl );
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBFormat;
+
+    var material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
+    var videoPlane = new THREE.Mesh( geometry, material );
+    scene.add( videoPlane );
+
+    camera.position.z = 5;
+
+    var animate = function () {
+      requestAnimationFrame( animate );
+
+      videoPlane.rotation.x += 0.01;
+      videoPlane.rotation.y += 0.01;
+
+      renderer.render( scene, camera );
+    };
+
+    
+    navigator.mediaDevices.getUserMedia({audio: true, video: true})
+      .then((stream) => {
+        let videoEl = document.getElementById('myvideo');
+        videoEl.srcObject = stream;
+        videoEl.play();
+
+        animate();
+      })
+      .catch((error) => {
+        console.log('UHOH!', error);
+      });
+  </script>
+</body>
+</html>

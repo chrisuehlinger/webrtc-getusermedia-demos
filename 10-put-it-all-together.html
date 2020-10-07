@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello Recorder!</title>
+</head>
+<body>
+  <button onclick="start()">Record</button>
+  <button onclick="stop()">Stop</button>
+  <video id="inputvideo" style="display:none"></video>
+  <video id="outputvideo" controls></video>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js" integrity="sha512-yNJzAsg5JyP91u+sLHlUDULMBd3hmEiVkYeeN1cQBKaLZ7EyT6oH2u5THNIRM2Fu6VKcZJv+F/QAp1h/qzy9Ow==" crossorigin="anonymous"></script>
+  <script>
+    const inputVideoEl = document.getElementById('inputvideo'),
+      outputVideoEl = document.getElementById('outputvideo');
+    let recorder = null;
+    let chunks = [];
+    var scene = new THREE.Scene();
+    var width = 640;
+    var height = 480;
+    var camera = new THREE.PerspectiveCamera( 75, width / height, 0.1, 1000 );
+
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize( width, height );
+    document.body.appendChild( renderer.domElement );
+
+    var geometry = new THREE.PlaneGeometry(4,3);
+
+    var texture = new THREE.VideoTexture( inputVideoEl );
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.format = THREE.RGBFormat;
+
+    var material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
+    var videoPlane = new THREE.Mesh( geometry, material );
+    scene.add( videoPlane );
+
+    camera.position.z = 5;
+
+    !function animate () {
+      requestAnimationFrame( animate );
+
+      videoPlane.rotation.x += 0.01;
+      videoPlane.rotation.y += 0.01;
+
+      renderer.render( scene, camera );
+    }()
+
+    async function start() {
+      try {
+        const inputStream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+        inputVideoEl.srcObject = inputStream;
+        inputVideoEl.play();
+
+        const audioContext = new AudioContext(),
+          sourceNode = audioContext.createMediaStreamSource(inputStream),
+          delayNode = audioContext.createDelay(),
+          gainNode = audioContext.createGain(),
+          outputNode = audioContext.createMediaStreamDestination();
+
+        delayNode.delayTime.value = 0.15; // How many seconds to delay
+        gainNode.gain.value = 0.75; // Each echo should be 75% the volume of the one before it
+
+        sourceNode.connect(outputNode); //This is called the "dry" part of the output, we're connecting the microphone stream directly to the output with no effects
+
+        sourceNode.connect(delayNode);
+        delayNode.connect(gainNode);
+        gainNode.connect(delayNode); // This is where we feed the delay back in, so it repeats as an echo
+        gainNode.connect(outputNode); // This is the "wet" part of the output, the part with effects. It will mix with the "dry" part at equal volume
+
+        const outputStream = new MediaStream([...renderer.domElement.captureStream().getVideoTracks(), ...outputNode.stream.getAudioTracks()]);
+
+        recorder = new MediaRecorder(outputStream, { mimeType:'video/webm'});
+
+        recorder.ondataavailable = (event) => {
+          console.log('GOT DATA!', event.data);
+          chunks.push(event.data);
+        };
+
+        recorder.onstop = () => {
+          let blob = new Blob(chunks, {type: 'video/webm'});
+          let blobUrl = URL.createObjectURL(blob);
+          outputVideoEl.src = blobUrl;
+
+          var downloadLink = document.createElement("a");
+          document.body.appendChild(downloadLink);
+          downloadLink.innerText = 'Download File';
+          downloadLink.href = blobUrl;
+          downloadLink.download = "test.webm";
+        };
+
+        recorder.start();
+      } catch(error) {
+        console.log('UHOH!', error);
+      }
+    }
+
+    async function stop() {
+      try {
+        if(recorder) {
+          recorder.stop();
+
+        }
+      } catch(error) {
+        console.log('UHOH!', error);
+      }
+    }
+  </script>
+</body>
+</html>
